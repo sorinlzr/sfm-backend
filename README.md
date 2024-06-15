@@ -52,5 +52,9 @@ The command will always start the same container. but if you want to rebuild the
 docker compose up --build
 ```
 
+### Swagger API
+
+You can access the Swagger API at the `/api-docs` endpoint
+
 <br>
 Once you start the application, the `mongoose.connect()` function is called from the `dbconnection.ts` file. This will create the database connection that will be used when the application will save documents to the database. More info in the [Mongoose documentation](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.connect())
