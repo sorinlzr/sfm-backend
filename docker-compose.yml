@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  sfm-backend:
+      container_name: sfm-backend
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+        - "${SFM_BACKEND_PORT}:${SFM_BACKEND_PORT}"
+      environment:
+        SFM_FRONTEND_PORT: ${SFM_FRONTEND_PORT:-3000}
+        JWT_SECRET: ${JWT_SECRET:-default-secret}
+        JWT_MAX_AGE: ${JWT_MAX_AGE:-3600}
+        MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+        MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+        MONGO_HOST: ${MONGO_HOST}
+        MONGO_PORT: ${MONGO_PORT}
+        MONGO_DB_NAME: ${MONGO_DB_NAME}
+        MONGO_DB_COLLECTION: ${MONGO_DB_COLLECTION}
+
+      
