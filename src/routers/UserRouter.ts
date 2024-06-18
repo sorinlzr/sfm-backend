@@ -161,9 +161,6 @@ userRouter.get('/:username', userController.getOneUser);
  *                 type: string
  *               avatar:
  *                 type: string
- *               update:
- *                 type: string
- *                 example: "true"
  *     responses:
  *       200:
  *         description: User updated successfully

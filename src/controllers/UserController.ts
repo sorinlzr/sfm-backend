@@ -121,59 +121,53 @@ const updateUser = asyncHandler(async (req, res, next) => {
             return;
         }
 
-        if (req.body.update !== "true") {
-            res.status(400).json({
-                message: "Are you sure you want to update the user?",
-            });
-        } else {
-            if (req.body.firstname && req.body.firstname !== user.firstname) {
-                user.firstname = req.body.firstname;
-            }
-            if (req.body.lastname && req.body.lastname !== user.lastname) {
-                user.lastname = req.body.lastname;
-            }
-            if (req.body.username && req.body.username !== user.username) {
-                const existingUser = await User.findOne({
-                    username: req.body.username,
-                });
-                if (existingUser) {
-                    console.error(
-                        `Error creating user. There is already an user with the same username\n`
-                    );
-                    res.status(400).json({
-                        error: "There is already an user with the same username",
-                    });
-                    return;
-                } else {
-                    user.username = req.body.username;
-                }
-            }
-            if (req.body.password) {
-                user.password = req.body.password;
-            }
-            if (req.body.email && req.body.email !== user.email) {
-                const existingUser = await User.findOne({ email: req.body.email });
-                if (existingUser) {
-                    console.error(
-                        `Error creating user. There is already an user with the same email\n`
-                    );
-                    res.status(400).json({
-                        error: "There is already an user with the same email",
-                    });
-                    return;
-                } else {
-                    user.email = req.body.email;
-                }
-            }
-            if (req.body.avatar) {
-                user.avatar = req.body.avatar;
-            }
-            await user.save();
-            res.status(200).json({
-                message: "User updated successfully",
-                data: user,
-            });
+        if (req.body.firstname && req.body.firstname !== user.firstname) {
+            user.firstname = req.body.firstname;
         }
+        if (req.body.lastname && req.body.lastname !== user.lastname) {
+            user.lastname = req.body.lastname;
+        }
+        if (req.body.username && req.body.username !== user.username) {
+            const existingUser = await User.findOne({
+                username: req.body.username,
+            });
+            if (existingUser) {
+                console.error(
+                    `Error creating user. There is already an user with the same username\n`
+                );
+                res.status(400).json({
+                    error: "There is already an user with the same username",
+                });
+                return;
+            } else {
+                user.username = req.body.username;
+            }
+        }
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+        if (req.body.email && req.body.email !== user.email) {
+            const existingUser = await User.findOne({ email: req.body.email });
+            if (existingUser) {
+                console.error(
+                    `Error creating user. There is already an user with the same email\n`
+                );
+                res.status(400).json({
+                    error: "There is already an user with the same email",
+                });
+                return;
+            } else {
+                user.email = req.body.email;
+            }
+        }
+        if (req.body.avatar) {
+            user.avatar = req.body.avatar;
+        }
+        await user.save();
+        res.status(200).json({
+            message: "User updated successfully",
+            data: user,
+        });
     } catch (error: any) {
         console.error(`Could not update the user with the specified data ${req.body}\n`, error);
         res.status(404).json({ error: "Could not update the user with the specified data. Please check your input" });
