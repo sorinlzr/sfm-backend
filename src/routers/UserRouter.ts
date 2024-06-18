@@ -1,5 +1,6 @@
 import express from 'express';
 import userController from '../controllers/UserController';
+import authController from '../controllers/AuthController';
 
 const userRouter = express.Router();
 
@@ -47,6 +48,37 @@ userRouter.post('/', userController.createUser);
  *     responses:
  *       200:
  *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 size:
+ *                   type: integer
+ *                   example: 1
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "60f6b9c2b43e4b23d4d6b82a"
+ *                       username:
+ *                         type: string
+ *                         example: "johndoe"
+ *                       firstname:
+ *                         type: string
+ *                         example: "John"
+ *                       lastname:
+ *                         type: string
+ *                         example: "Doe"
+ *                       email:
+ *                         type: string
+ *                         example: "johndoe@example.com"
+ *                       avatar:
+ *                         type: string
+ *                         example: "avatar-url"
  */
 userRouter.get('/', userController.getUsers);
 
@@ -66,6 +98,32 @@ userRouter.get('/', userController.getUsers);
  *     responses:
  *       200:
  *         description: User details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "60f6b9c2b43e4b23d4d6b82a"
+ *                     username:
+ *                       type: string
+ *                       example: "johndoe"
+ *                     firstname:
+ *                       type: string
+ *                       example: "John"
+ *                     lastname:
+ *                       type: string
+ *                       example: "Doe"
+ *                     email:
+ *                       type: string
+ *                       example: "johndoe@example.com"
+ *                     avatar:
+ *                       type: string
+ *                       example: "avatar-url"
  *       404:
  *         description: User not found
  */
@@ -103,14 +161,21 @@ userRouter.get('/:username', userController.getOneUser);
  *                 type: string
  *               avatar:
  *                 type: string
+ *               update:
+ *                 type: string
+ *                 example: "true"
  *     responses:
  *       200:
  *         description: User updated successfully
  *       400:
- *         description: Error updating user
+ *         description: Invalid input or user already exists with the same email or username
+ *       401:
+ *         description: You must be logged in to perform this action
+ *       403:
+ *         description: You are not authorized to update this user
  *       404:
  *         description: User not found
  */
-userRouter.put('/:username', userController.updateUser);
+userRouter.put('/:username', authController.validateToken, userController.updateUser);
 
 export default userRouter;

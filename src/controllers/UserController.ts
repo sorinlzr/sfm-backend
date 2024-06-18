@@ -4,6 +4,7 @@ import { IUser } from "../interfaces/IUser.js";
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import Team from "../models/Team";
+import authController from "./AuthController";
 
 interface UserController {
     createUser?: any;
@@ -104,62 +105,78 @@ const getOneUser = asyncHandler(async (req, res, next) => {
 });
 
 const updateUser = asyncHandler(async (req, res, next) => {
-    const user = await User.findOne({ username: req.params.username });
-    if (!user) {
-        res.status(404);
-        throw new Error("User not found");
-    }
+    try {
+        const jwtUserId = authController.getUserIdFromJwtToken(req);
+        if (!jwtUserId) {
+            res.status(401).json({ error: "You must be logged in to perform this action" });
+            return;
+        }
+        const user = await User.findOne({ username: req.params.username });
+        if (!user) {
+            res.status(404);
+            throw new Error("User not found");
+        }
+        if (user.id !== jwtUserId) {
+            res.status(403).json({ error: "You are not authorized to update this user" });
+            return;
+        }
 
-    if (req.query.update !== "true") {
-        res.status(400).json({
-            message: "Are you sure you want to update the user?",
-        });
-    } else {
-        if (req.body.firstname) {
-            user.firstname = req.body.firstname;
-        }
-        if (req.body.lastname) {
-            user.lastname = req.body.lastname;
-        }
-        if (req.body.username) {
-            const existingUser = await User.findOne({
-                username: req.body.username,
+        if (req.body.update !== "true") {
+            res.status(400).json({
+                message: "Are you sure you want to update the user?",
             });
-            if (existingUser) {
-                console.error(
-                    `Error creating user. There is already an user with the same username\n`
-                );
-                res.status(400).json({
-                    error: "There is already an user with the same username",
-                });
-            } else {
-                user.username = req.body.username;
+        } else {
+            if (req.body.firstname && req.body.firstname !== user.firstname) {
+                user.firstname = req.body.firstname;
             }
-        }
-        if (req.body.password) {
-            user.password = req.body.password;
-        }
-        if (req.body.email) {
-            const existingUser = await User.findOne({ email: req.body.email });
-            if (existingUser) {
-                console.error(
-                    `Error creating user. There is already an user with the same email\n`
-                );
-                res.status(400).json({
-                    error: "There is already an user with the same email",
-                });
-            } else {
-                user.email = req.body.email;
+            if (req.body.lastname && req.body.lastname !== user.lastname) {
+                user.lastname = req.body.lastname;
             }
+            if (req.body.username && req.body.username !== user.username) {
+                const existingUser = await User.findOne({
+                    username: req.body.username,
+                });
+                if (existingUser) {
+                    console.error(
+                        `Error creating user. There is already an user with the same username\n`
+                    );
+                    res.status(400).json({
+                        error: "There is already an user with the same username",
+                    });
+                    return;
+                } else {
+                    user.username = req.body.username;
+                }
+            }
+            if (req.body.password) {
+                user.password = req.body.password;
+            }
+            if (req.body.email && req.body.email !== user.email) {
+                const existingUser = await User.findOne({ email: req.body.email });
+                if (existingUser) {
+                    console.error(
+                        `Error creating user. There is already an user with the same email\n`
+                    );
+                    res.status(400).json({
+                        error: "There is already an user with the same email",
+                    });
+                    return;
+                } else {
+                    user.email = req.body.email;
+                }
+            }
+            if (req.body.avatar) {
+                user.avatar = req.body.avatar;
+            }
+            await user.save();
+            res.status(200).json({
+                message: "User updated successfully",
+                data: user,
+            });
         }
-        if (req.body.avatar) {
-            user.avatar = req.body.avatar;
-        }
-        await user.save();
-        res.status(200).json({
-            message: "User updated successfully",
-            data: user,
-        });
+    } catch (error: any) {
+        console.error(`Could not update the user with the specified data ${req.body}\n`, error);
+        res.status(404).json({ error: "Could not update the user with the specified data. Please check your input" });
     }
 });
 

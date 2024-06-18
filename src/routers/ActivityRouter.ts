@@ -1,5 +1,6 @@
 import express from 'express';
 import activityController from '../controllers/ActivityController';
+import authController from '../controllers/AuthController';
 
 const activityRouter = express.Router();
 
@@ -54,7 +55,7 @@ const activityRouter = express.Router();
  *       500:
  *         description: Server error
  */
-activityRouter.post('/', activityController.createActivity);
+activityRouter.post('/', authController.validateToken, activityController.createActivity);
 
 /**
  * @swagger
@@ -79,7 +80,7 @@ activityRouter.post('/', activityController.createActivity);
  *         description: Server error
  */
 
-activityRouter.get('/', activityController.getActivities);
+activityRouter.get('/', authController.validateToken, activityController.getActivities);
 
 /**
  * @swagger
@@ -111,7 +112,7 @@ activityRouter.get('/', activityController.getActivities);
  *         description: Server error
  */
 
-activityRouter.post('/add', activityController.addActivity);
+activityRouter.post('/add', authController.validateToken, activityController.addActivity);
 
 /**
  * @swagger
@@ -170,7 +171,7 @@ activityRouter.post('/add', activityController.addActivity);
  *         description: Server error
  */
 
-activityRouter.put('/update', activityController.updateActivity);
+activityRouter.put('/update', authController.validateToken, activityController.updateActivity);
 
 /**
  * @swagger
@@ -200,6 +201,6 @@ activityRouter.put('/update', activityController.updateActivity);
  *         description: Server error
  */
 
-activityRouter.delete('/delete', activityController.deleteActivity);
+activityRouter.delete('/delete', authController.validateToken, activityController.deleteActivity);
 
 export default activityRouter;
