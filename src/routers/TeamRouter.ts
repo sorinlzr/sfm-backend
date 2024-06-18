@@ -20,10 +20,28 @@ const teamRouter = express.Router();
  *     responses:
  *       200:
  *         description: Team details retrieved successfully
+ *       400:
+ *         description: Team name is required
  *       404:
  *         description: Team not found
+ *       500:
+ *         description: Server error
  */
 teamRouter.get('/', teamController.getTeam);
+
+/**
+ * @swagger
+ * /api/team/all:
+ *   get:
+ *     summary: Get all teams
+ *     tags: [Teams]
+ *     responses:
+ *       200:
+ *         description: Teams retrieved successfully
+ *       500:
+ *         description: Server error
+ */
+teamRouter.get('/all', teamController.getAllTeams);
 
 /**
  * @swagger
@@ -45,8 +63,12 @@ teamRouter.get('/', teamController.getTeam);
  *     responses:
  *       201:
  *         description: Team created successfully
+ *       400:
+ *         description: Name and type of sport are required
  *       409:
  *         description: A team with this name already exists
+ *       500:
+ *         description: Server error
  */
 teamRouter.post('/', authController.validateToken, teamController.createTeam);
 
@@ -70,8 +92,14 @@ teamRouter.post('/', authController.validateToken, teamController.createTeam);
  *     responses:
  *       200:
  *         description: User added to team successfully
+ *       400:
+ *         description: Team name and username are required
+ *       401:
+ *         description: You are not the manager of this team
  *       404:
  *         description: Team or user not found
+ *       500:
+ *         description: Server error
  */
 teamRouter.put('/add', authController.validateToken, teamController.addUserToTeam);
 
@@ -88,6 +116,8 @@ teamRouter.put('/add', authController.validateToken, teamController.addUserToTea
  *           schema:
  *             type: object
  *             properties:
+ *               team:
+ *                 type: string
  *               name:
  *                 type: string
  *               type:
@@ -107,8 +137,14 @@ teamRouter.put('/add', authController.validateToken, teamController.addUserToTea
  *     responses:
  *       200:
  *         description: Team updated successfully
+ *       400:
+ *         description: Team name is required to update
+ *       403:
+ *         description: Current user is not the manager of the team
  *       404:
  *         description: Team not found
+ *       500:
+ *         description: Server error
  */
 teamRouter.put('/update', authController.validateToken, teamController.updateTeam);
 
@@ -130,8 +166,14 @@ teamRouter.put('/update', authController.validateToken, teamController.updateTea
  *     responses:
  *       200:
  *         description: Team deleted successfully
+ *       400:
+ *         description: Name is required
+ *       403:
+ *         description: Current user is not the manager of the team
  *       404:
  *         description: Team not found
+ *       500:
+ *         description: Server error
  */
 teamRouter.delete('/', authController.validateToken, teamController.deleteTeam);
 

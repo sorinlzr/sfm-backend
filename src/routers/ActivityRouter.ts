@@ -18,25 +18,41 @@ const activityRouter = express.Router();
  *             properties:
  *               subject:
  *                 type: string
+ *                 example: "Practice Match"
  *               activityType:
  *                 type: string
+ *                 enum: ["Game", "Training", "Other activity"]
+ *                 example: "Training"
  *               team:
  *                 type: string
+ *                 example: "Team A"
  *               opponent:
  *                 type: string
+ *                 example: "Team B"
  *               date:
  *                 type: string
+ *                 format: date-time
+ *                 description: Date in ISO 8601 format (e.g., 2023-06-18T15:30:00Z)
+ *                 example: "2023-06-18T15:30:00Z"
  *               location:
  *                 type: string
+ *                 example: "Stadium"
  *               listOfGuests:
  *                 type: array
  *                 items:
  *                   type: string
+ *                   example: "66701737eca837c89a95757d"
  *     responses:
- *       200:
+ *       201:
  *         description: Activity created successfully
+ *       400:
+ *         description: Invalid input or date format
+ *       401:
+ *         description: User is not logged in
  *       404:
- *         description: Error occurred while creating the activity
+ *         description: Team or activity type not found
+ *       500:
+ *         description: Server error
  */
 activityRouter.post('/', activityController.createActivity);
 
@@ -44,14 +60,25 @@ activityRouter.post('/', activityController.createActivity);
  * @swagger
  * /api/activity:
  *   get:
- *     summary: Get all activities
+ *     summary: Get all activities for a team
  *     tags: [Activities]
+ *     parameters:
+ *       - in: query
+ *         name: team
+ *         schema:
+ *           type: string
+ *           example: "Team A"
+ *         required: true
+ *         description: The name of the team
  *     responses:
  *       200:
- *         description: A list of activities
+ *         description: Successfully retrieved activities
  *       404:
- *         description: Error occurred while fetching the activities
+ *         description: Team not found
+ *       500:
+ *         description: Server error
  */
+
 activityRouter.get('/', activityController.getActivities);
 
 /**
@@ -69,14 +96,21 @@ activityRouter.get('/', activityController.getActivities);
  *             properties:
  *               team:
  *                 type: string
+ *                 example: "Team A"
  *               activity:
  *                 type: string
+ *                 example: "66701737eca837c89a95757d"
  *     responses:
  *       200:
- *         description: Activity added to team successfully
+ *         description: Activity added successfully
+ *       400:
+ *         description: Invalid input
  *       404:
- *         description: Error occurred while adding the activity
+ *         description: Team or activity not found
+ *       500:
+ *         description: Server error
  */
+
 activityRouter.post('/add', activityController.addActivity);
 
 /**
@@ -92,35 +126,57 @@ activityRouter.post('/add', activityController.addActivity);
  *           schema:
  *             type: object
  *             properties:
+ *               team:
+ *                 type: string
+ *                 example: "Team A"
  *               activity:
  *                 type: string
+ *                 example: "66701737eca837c89a95757d"
  *               subject:
  *                 type: string
+ *                 example: "Updated Match"
  *               type:
  *                 type: string
+ *                 example: "Training"
  *               opponent:
  *                 type: string
+ *                 example: "Updated Opponent"
  *               date:
  *                 type: string
+ *                 format: date-time
+ *                 example: "2023-06-19T15:30:00Z"
  *               location:
  *                 type: string
+ *                 example: "Updated Stadium"
  *               listOfGuests:
  *                 type: array
  *                 items:
- *                   type: string
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "66701737eca837c89a95757d"
+ *                     attendance:
+ *                       type: boolean
+ *                       example: true
  *     responses:
  *       200:
  *         description: Activity updated successfully
+ *       400:
+ *         description: Invalid input or date format
  *       404:
- *         description: Error occurred while updating the activity
+ *         description: Team or activity not found
+ *       500:
+ *         description: Server error
  */
+
 activityRouter.put('/update', activityController.updateActivity);
 
 /**
  * @swagger
- * /api/activity:
+ * /api/activity/delete:
  *   delete:
- *     summary: Delete an activity
+ *     summary: Delete an activity from a team
  *     tags: [Activities]
  *     requestBody:
  *       required: true
@@ -131,14 +187,19 @@ activityRouter.put('/update', activityController.updateActivity);
  *             properties:
  *               team:
  *                 type: string
+ *                 example: "Team A"
  *               activity:
  *                 type: string
+ *                 example: "66701737eca837c89a95757d"
  *     responses:
  *       200:
  *         description: Activity deleted successfully
  *       404:
- *         description: Error occurred while deleting the activity
+ *         description: Team or activity not found
+ *       500:
+ *         description: Server error
  */
-activityRouter.delete('/', activityController.deleteActivity);
+
+activityRouter.delete('/delete', activityController.deleteActivity);
 
 export default activityRouter;

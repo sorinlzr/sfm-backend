@@ -7,6 +7,7 @@ import { capitalizeFirstLetter } from '../util/Utils';
 
 interface TeamController {
     getTeam?: any;
+    getAllTeams?: any;
     createTeam?: any;
     deleteTeam?: any;
     updateTeam?: any;
@@ -17,23 +18,25 @@ const teamController: TeamController = {};
 
 const createTeam = asyncHandler(async (req, res) => {
     try {
-        const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.name)) });
-        if (team) {
+        const { name, type } = req.body;
+        const teamExists  = await Team.findOne({ "name": capitalizeFirstLetter(String(name)) });
+        if (teamExists ) {
             res.status(409);
             throw new Error("A team with this name already exists");
         }
 
         const jwtUserId = authController.getUserIdFromJwtToken(req);
         const user = await User.findById(jwtUserId);
-
+        
         if (!user) {
             res.status(404);
             throw new Error("User not found");
         }
-
+        console.log("[TeamController] User Id: " + user.id)
+        
         const newTeam: ITeam = {
-            name: capitalizeFirstLetter(String(req.body.name)),
-            typeOfSport: capitalizeFirstLetter(String(req.body.type)),
+            name: capitalizeFirstLetter(String(name)),
+            typeOfSport: capitalizeFirstLetter(String(type)),
             manager: user.id,
             listOfMembers: [user.id],
             activities: [],
@@ -61,9 +64,10 @@ const createTeam = asyncHandler(async (req, res) => {
 
 const deleteTeam = asyncHandler(async (req, res) => {
     try {
+        const { name } = req.body;
         const jwtUserId = authController.getUserIdFromJwtToken(req);
 
-        const team = await Team.findOne({ "name": req.body.name });
+        const team = await Team.findOne({ "name": name });
         if (!team) {
             res.status(404);
             throw new Error("Team not found");
@@ -87,7 +91,7 @@ const deleteTeam = asyncHandler(async (req, res) => {
 const getTeam = asyncHandler(async (req, res) => {
     try {
         if (req.query.team) {
-            const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.team)) });
+            const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.query.team)) });
 
             if (!team) {
                 res.status(404).json({ error: "Could not find the team with the specified name" });
@@ -113,6 +117,26 @@ const getTeam = asyncHandler(async (req, res) => {
 
 });
 
+teamController.getAllTeams = asyncHandler(async (req, res) => {
+    try {
+        const teams = await Team.find({});
+        const payload = teams.map(team => ({
+            id: team._id,
+            name: team.name,
+            type: team.typeOfSport,
+            manager: team.manager,
+            members: team.listOfMembers,
+            activities: team.activities,
+            inviteCode: team.inviteCode
+        }));
+        res.status(200).json({ data: payload });
+    } catch (error: any) {
+        console.error(`Could not retrieve teams\n`, error);
+        res.status(500).json({ error: "Could not retrieve teams. Please try again later." });
+    }
+});
+
+
 
 const updateTeam = asyncHandler(async (req, res) => {
     try {
@@ -121,6 +145,7 @@ const updateTeam = asyncHandler(async (req, res) => {
         const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.team)) });
         if (!team) {
             res.status(404).json({ error: "Could not find the team with the specified name" });
+            return;
         } else {
             const manager = team?.manager;
             console.log("Current user id: ", jwtUserId);
@@ -164,14 +189,17 @@ const addUserToTeam = asyncHandler(async (req, res) => {
 
         if (!team) {
             res.status(404).json({ error: "Could not find the team with the specified name" });
+            return;
         } else {
-            if (team.manager.id.toString() !== jwtUserId) {
+            if (team.manager._id.toString() !== jwtUserId) {
                 res.status(401).json({ error: "You are not the manager of this team" });
+                return;
             }
             
             const user = await User.findOne({ "username": req.body.username });
             if (!user) {
                 res.status(404).json({ error: "Could not find the user with the specified username" });
+                return;
             } else {
                 team.listOfMembers.push(user.id);
                 await team.save();
@@ -187,6 +215,7 @@ const addUserToTeam = asyncHandler(async (req, res) => {
 teamController.createTeam = createTeam;
 teamController.deleteTeam = deleteTeam;
 teamController.getTeam = getTeam;
+teamController.getAllTeams = teamController.getAllTeams;
 teamController.updateTeam = updateTeam;
 teamController.addUserToTeam = addUserToTeam;
 
