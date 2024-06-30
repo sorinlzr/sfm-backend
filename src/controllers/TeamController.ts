@@ -90,6 +90,7 @@ const deleteTeam = asyncHandler(async (req, res) => {
 
 const getTeam = asyncHandler(async (req, res) => {
     try {
+        console.log("Cet team Called for team " + req.query.team)
         if (req.query.team) {
             const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.query.team)) });
 

@@ -91,7 +91,7 @@ const getOneUser = asyncHandler(async (req, res, next) => {
     if (!document) {
         res.status(404).json({ error: "User not found" });
     } else {
-        const user = {
+        const payload = {
             id: document._id,
             username: document.username,
             firstname: document.firstname,
@@ -100,7 +100,7 @@ const getOneUser = asyncHandler(async (req, res, next) => {
             email: document.email
         };
 
-        res.status(200).json({ user });
+        res.status(200).json({ data: payload });
     }
 });
 

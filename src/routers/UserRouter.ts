@@ -103,7 +103,7 @@ userRouter.get('/', userController.getUsers);
  *             schema:
  *               type: object
  *               properties:
- *                 user:
+ *                 data:
  *                   type: object
  *                   properties:
  *                     id:

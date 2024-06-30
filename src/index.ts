@@ -1,6 +1,5 @@
 import express from "express";
 import 'dotenv/config'
-import cors from "cors";
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import swaggerJsDoc from 'swagger-jsdoc';
@@ -13,10 +12,6 @@ import passport from "./config/passport";
 import authRouter from "./routers/AuthRouter";
 
 const port = process.env.SFM_BACKEND_PORT || 5000;
-const corsOptions = {
-    origin: `http://localhost:${process.env.SFM_FRONTEND_PORT}`,
-    credentials: true,
-};
 
 const swaggerOptions = {
     swaggerDefinition: {
@@ -38,7 +33,6 @@ const swaggerOptions = {
 const swaggerSpecs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
-app.use(cors(corsOptions));
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser());
