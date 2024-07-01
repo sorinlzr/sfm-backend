@@ -23,6 +23,7 @@ interface AuthPayload {
     username: string;
     firstname: string;
     lastname: string;
+    email: string;
     avatar?: string;
 }
 
@@ -30,6 +31,7 @@ const authController: AuthController = {};
 
 const login = asyncHandler(async (req, res, next): Promise<void> => {
     try {
+        console.log("Logging in..");
         const username = req.body.username;
         const password = req.body.password;
 
@@ -58,6 +60,7 @@ const login = asyncHandler(async (req, res, next): Promise<void> => {
                 username: user.username,
                 firstname: user.firstname,
                 lastname: user.lastname,
+                email: user.email,
                 avatar: user.avatar
             }
 
@@ -90,6 +93,7 @@ const login = asyncHandler(async (req, res, next): Promise<void> => {
 
 const logout = asyncHandler(async (req, res, next) => {
     try {
+        console.log("Logging out");
         // Clear the token cookie
         res.clearCookie(TOKEN);
 

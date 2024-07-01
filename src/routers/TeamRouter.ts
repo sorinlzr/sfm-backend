@@ -58,7 +58,7 @@ teamRouter.get('/all', teamController.getAllTeams);
  *             properties:
  *               name:
  *                 type: string
- *               type:
+ *               typeOfSport:
  *                 type: string
  *     responses:
  *       201:
@@ -120,7 +120,7 @@ teamRouter.put('/add', authController.validateToken, teamController.addUserToTea
  *                 type: string
  *               name:
  *                 type: string
- *               type:
+ *               typeOfSport:
  *                 type: string
  *               manager:
  *                 type: string

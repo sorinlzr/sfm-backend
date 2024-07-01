@@ -48,7 +48,7 @@ const createTeam = asyncHandler(async (req, res) => {
         const payload = {
             id: newDoc._id,
             name: newDoc.name,
-            type: newDoc.typeOfSport,
+            typeOfSport: newDoc.typeOfSport,
             manager: newDoc.manager,
             members: newDoc.listOfMembers,
             activities: newDoc.activities,
@@ -90,7 +90,6 @@ const deleteTeam = asyncHandler(async (req, res) => {
 
 const getTeam = asyncHandler(async (req, res) => {
     try {
-        console.log("Cet team Called for team " + req.query.team)
         if (req.query.team) {
             const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.query.team)) });
 
@@ -100,7 +99,7 @@ const getTeam = asyncHandler(async (req, res) => {
                 const payload = {
                     id: team._id,
                     name: team.name,
-                    type: team.typeOfSport,
+                    typeOfSport: team.typeOfSport,
                     manager: team.manager,
                     members: team.listOfMembers,
                     activities: team.activities,
@@ -124,7 +123,7 @@ teamController.getAllTeams = asyncHandler(async (req, res) => {
         const payload = teams.map(team => ({
             id: team._id,
             name: team.name,
-            type: team.typeOfSport,
+            typeOfSport: team.typeOfSport,
             manager: team.manager,
             members: team.listOfMembers,
             activities: team.activities,

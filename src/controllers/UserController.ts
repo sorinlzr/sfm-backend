@@ -30,6 +30,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
             res.status(400).json({
                 error: "There is already an user with the same email or username",
             });
+            return;
         }
 
         const newUser: IUser = {

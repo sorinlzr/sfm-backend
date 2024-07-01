@@ -157,7 +157,7 @@ activityRouter.post('/add', authController.validateToken, activityController.add
  *               subject:
  *                 type: string
  *                 example: "Updated Match"
- *               type:
+ *               activityType:
  *                 type: string
  *                 example: "Training"
  *               opponent:

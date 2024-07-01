@@ -117,6 +117,7 @@ const getActivities = asyncHandler(async (req, res) => {
 
 const getUserActivities = asyncHandler(async (req, res) => {
     try {
+        console.log("Getting user activities")
         const jwtUserId = authController.getUserIdFromJwtToken(req);
         if (!jwtUserId) {
             res.status(401).json({ error: "You must be logged in to perform this action" });
@@ -199,7 +200,7 @@ const updateActivity = asyncHandler(async (req, res) => {
                 if (req.body.subject) {
                     activity.subject = req.body.subject;
                 }
-                if (req.body.type) {
+                if (req.body.activityType) {
                     let activityType;
                     if (Object.values(ActivityTypeEnum).includes(req.body.activityType)) {
                         activityType = await ActivityTypeModel.findOne({ "name": capitalizeFirstLetter(req.body.activityType) });
@@ -243,6 +244,7 @@ const updateActivity = asyncHandler(async (req, res) => {
                             .populate('opponent', 'name typeOfSport manager')
                             .populate('listOfGuests._id', 'firstname lastname username avatar');
 
+                            
 
             res.status(200).json({ data: activities });
             }
