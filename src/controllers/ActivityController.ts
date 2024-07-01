@@ -12,6 +12,7 @@ import ActivityTypeModel, { ActivityTypeEnum } from "../models/ActivityType";
 interface ActivityController {
     createActivity?: any;
     getActivities?: any;
+    getUserActivities?: any;
     addActivity?: any;
     updateActivity?: any;
     deleteActivity?: any;
@@ -114,6 +115,38 @@ const getActivities = asyncHandler(async (req, res) => {
     }
 });
 
+const getUserActivities = asyncHandler(async (req, res) => {
+    try {
+        const jwtUserId = authController.getUserIdFromJwtToken(req);
+        if (!jwtUserId) {
+            res.status(401).json({ error: "You must be logged in to perform this action" });
+            return;
+        }
+
+        // const username = req.body.username;
+        // if (!username) {
+        //     res.status(400).json({ error: "User ID is required" });
+        //     return;
+        // }
+
+        const user = await User.findById(jwtUserId);
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+
+        const activities = await Activity.find({ "listOfGuests._id": jwtUserId })
+            .populate('hostingTeam', 'name typeOfSport manager')
+            .populate('type', 'name')
+            .populate('opponent', 'name typeOfSport manager')
+            .populate('listOfGuests._id', 'firstname lastname username avatar');
+
+        res.status(200).json({ data: activities });
+    } catch (error) {
+        console.error("An error has occurred trying to get the user activities\n", error);
+        res.status(500).json({ error: "An error has occurred trying to get the user activities" });
+    }
+});
 
 const addActivity = asyncHandler(async (req, res) => {
     try {
@@ -252,6 +285,7 @@ const deleteActivity = asyncHandler(async (req, res) => {
 
 activityController.createActivity = createActivity;
 activityController.getActivities = getActivities;
+activityController.getUserActivities = getUserActivities;
 activityController.addActivity = addActivity;
 activityController.updateActivity = updateActivity;
 activityController.deleteActivity = deleteActivity;

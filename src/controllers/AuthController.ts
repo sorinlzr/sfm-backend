@@ -35,12 +35,14 @@ const login = asyncHandler(async (req, res, next): Promise<void> => {
 
         if (!username || !password) {
             res.status(400).json({ error: 'All fields are required' });
+            return;
         }
 
         const user = await User.findOne({ username });
 
         if (!user) {
             res.status(404).json({ error: "Username not found" });
+            return;
         } else {
             console.log("user found");
 

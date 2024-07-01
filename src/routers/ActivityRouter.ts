@@ -84,6 +84,27 @@ activityRouter.get('/', authController.validateToken, activityController.getActi
 
 /**
  * @swagger
+ * /api/activity/user:
+ *   get:
+ *     summary: Get all activities where the user is part of the guest list
+ *     tags: [Activities]
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user activities
+ *       400:
+ *         description: User ID is required
+ *       401:
+ *         description: User is not logged in
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+activityRouter.get('/user', authController.validateToken, activityController.getUserActivities);
+
+
+/**
+ * @swagger
  * /api/activity/add:
  *   post:
  *     summary: Add an existing activity to a team
