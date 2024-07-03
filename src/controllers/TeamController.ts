@@ -8,6 +8,7 @@ import { capitalizeFirstLetter } from "../util/Utils";
 interface TeamController {
     getTeam?: any;
     getTeamByManager?: any;
+    getTeamsByUser?: any;
     getAllTeams?: any;
     createTeam?: any;
     deleteTeam?: any;
@@ -103,6 +104,70 @@ const createTeam = asyncHandler(async (req, res) => {
         );
         res.status(404).json({
             error: "Could not create the team with the specified data. Please check your input",
+        });
+    }
+});
+
+const getTeamsByUser = asyncHandler(async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const teams = await Team.find({ listOfMembers: userId })
+            .populate("manager listOfMembers pendingMembers")
+            .populate({
+                path: "activities",
+                populate: {
+                    path: "hostingTeam opponent",
+                    populate: {
+                        path: "name",
+                    },
+                    model: "Team",
+                },
+                model: "Activity",
+            })
+            .populate({
+                path: "activities",
+                populate: {
+                    path: "type",
+                    populate: {
+                        path: "name",
+                    },
+                    model: "ActivityType",
+                },
+                model: "Activity",
+            })
+            .populate({
+                path: "activities",
+                populate: {
+                    path: "listOfGuests",
+                    model: "User",
+                },
+                model: "Activity",
+            });
+
+        if (teams.length === 0) {
+            res.status(404).json({
+                error: "No teams found for this user",
+            });
+            return;
+        }
+
+        const payload = teams.map((team) => ({
+            id: team._id,
+            name: team.name,
+            typeOfSport: team.typeOfSport,
+            manager: team.manager,
+            members: team.listOfMembers,
+            pendingMembers: team.pendingMembers,
+            activities: team.activities,
+            inviteCode: team.inviteCode,
+        }));
+
+        res.status(200).json({ data: payload });
+    } catch (error) {
+        console.error(`Could not retrieve teams for the user\n`, error);
+        res.status(500).json({
+            error: "Could not retrieve teams. Please try again later.",
         });
     }
 });
@@ -586,6 +651,7 @@ teamController.createTeam = createTeam;
 teamController.deleteTeam = deleteTeam;
 teamController.getTeam = getTeam;
 teamController.getTeamByManager = getTeamByManager;
+teamController.getTeamsByUser = getTeamsByUser;
 teamController.getAllTeams = teamController.getAllTeams;
 teamController.updateTeam = updateTeam;
 teamController.addUserToTeam = addUserToTeam;

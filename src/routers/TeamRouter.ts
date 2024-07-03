@@ -45,6 +45,30 @@ teamRouter.get('/all', teamController.getAllTeams);
 
 /**
  * @swagger
+ * /api/team/all/{userId}:
+ *   get:
+ *     summary: Get teams by user ID
+ *     tags: [Teams]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user
+ *     responses:
+ *       200:
+ *         description: Teams retrieved successfully
+ *       404:
+ *         description: No teams found for this user
+ *       500:
+ *         description: Server error
+ */
+teamRouter.get('/all/:userId', teamController.getTeamsByUser);
+
+
+/**
+ * @swagger
  * /api/team/manager:
  *   get:
  *     summary: Get team by manager

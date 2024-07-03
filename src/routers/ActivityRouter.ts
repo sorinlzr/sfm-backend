@@ -97,6 +97,96 @@ activityRouter.get('/', authController.validateToken, activityController.getActi
  */
 activityRouter.get('/user', authController.validateToken, activityController.getUserActivities);
 
+/**
+ * @swagger
+ * /api/activity/updateAttendance:
+ *   post:
+ *     summary: Update attendance for a specific guest in an activity
+ *     tags: [Activities]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               activityId:
+ *                 type: string
+ *                 example: "66701737eca837c89a95757d"
+ *               guestUserId:
+ *                 type: string
+ *                 example: "66701737eca837c89a95757d"
+ *               attendance:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Attendance updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Activity or guest not found
+ *       500:
+ *         description: Server error
+ */
+activityRouter.post('/updateAttendance', authController.validateToken, activityController.updateAttendance);
+
+/**
+ * @swagger
+ * /api/activity/{id}:
+ *   get:
+ *     summary: Get an activity by ID
+ *     tags: [Activities]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the activity
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved activity
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     subject:
+ *                       type: string
+ *                     activityType:
+ *                       type: string
+ *                     team:
+ *                       type: string
+ *                     opponent:
+ *                       type: string
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     location:
+ *                       type: string
+ *                     listOfGuests:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           attendance:
+ *                             type: boolean
+ *       400:
+ *         description: Invalid activity ID
+ *       404:
+ *         description: Activity not found
+ *       500:
+ *         description: Server error
+ */
+activityRouter.get('/:id', activityController.getActivityById);
 
 /**
  * @swagger
@@ -186,7 +276,6 @@ activityRouter.post('/add', authController.validateToken, activityController.add
  *       500:
  *         description: Server error
  */
-
 activityRouter.put('/update', authController.validateToken, activityController.updateActivity);
 
 /**
@@ -216,7 +305,6 @@ activityRouter.put('/update', authController.validateToken, activityController.u
  *       500:
  *         description: Server error
  */
-
 activityRouter.delete('/delete', authController.validateToken, activityController.deleteActivity);
 
 export default activityRouter;

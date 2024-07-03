@@ -12,10 +12,12 @@ import mongoose from 'mongoose';
 
 interface ActivityController {
     createActivity?: any;
+    getActivityById?: any;
     getActivities?: any;
     getUserActivities?: any;
     addActivity?: any;
     updateActivity?: any;
+    updateAttendance?: any;
     deleteActivity?: any;
 }
 
@@ -115,6 +117,32 @@ const createActivity = asyncHandler(async (req, res) => {
     }
 });
 
+const getActivityById = asyncHandler(async (req, res) => {
+    try {
+        const activityId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(activityId)) {
+            res.status(400).json({ error: "Invalid activity ID" });
+            return;
+        }
+
+        const activity = await Activity.findById(activityId)
+            .populate('hostingTeam', 'name typeOfSport manager')
+            .populate('type', 'name')
+            .populate('opponent', 'name typeOfSport manager')
+            .populate('listOfGuests._id', 'firstname lastname username avatar');
+
+        if (!activity) {
+            res.status(404).json({ error: "Activity not found" });
+            return;
+        }
+
+        res.status(200).json({ data: activity });
+    } catch (error) {
+        console.error("An error has occurred trying to get the activity by ID\n", error);
+        res.status(500).json({ error: "An error has occurred trying to get the activity by ID" });
+    }
+});
 
 const getActivities = asyncHandler(async (req, res) => {
     try {
@@ -211,6 +239,45 @@ const addActivity = asyncHandler(async (req, res) => {
         res.status(404).json({ error: "An error has occured trying to add an activity to the team" });
     }  
 })
+
+const updateAttendance = asyncHandler(async (req, res) => {
+    try {
+        const { activityId, guestUserId, attendance } = req.body;
+        console.log(`Updating the attendance for ${guestUserId}, activity ${activityId} to ${attendance}`)
+
+        if (!mongoose.Types.ObjectId.isValid(activityId) || !mongoose.Types.ObjectId.isValid(guestUserId) || typeof attendance !== 'boolean') {
+            res.status(400).json({ error: "Invalid input data" });
+            return;
+        }
+
+        const activity = await Activity.findById(activityId);
+        if (!activity) {
+            res.status(404).json({ error: "Activity not found" });
+            return;
+        }
+
+        const guestIndex = activity.listOfGuests.findIndex(guest => guest._id.toString() === guestUserId);
+        if (guestIndex === -1) {
+            res.status(404).json({ error: "Guest user not found in activity's guest list" });
+            return;
+        }
+
+        activity.listOfGuests[guestIndex].attendance = attendance;
+
+        await activity.save();
+
+        const updatedActivity = await Activity.findById(activityId)
+            .populate('hostingTeam', 'name typeOfSport manager')
+            .populate('type', 'name')
+            .populate('opponent', 'name typeOfSport manager')
+            .populate('listOfGuests._id', 'firstname lastname username avatar');
+
+        res.status(200).json({ data: updatedActivity });
+    } catch (error) {
+        console.error("An error occurred while updating attendance:", error);
+        res.status(500).json({ error: "An error occurred while updating attendance" });
+    }
+});
 
 const updateActivity = asyncHandler(async (req, res) => {
     try {
@@ -320,10 +387,12 @@ const deleteActivity = asyncHandler(async (req, res) => {
 });
 
 activityController.createActivity = createActivity;
+activityController.getActivityById = getActivityById;
 activityController.getActivities = getActivities;
 activityController.getUserActivities = getUserActivities;
 activityController.addActivity = addActivity;
 activityController.updateActivity = updateActivity;
+activityController.updateAttendance = updateAttendance;
 activityController.deleteActivity = deleteActivity;
 
 export default activityController;
