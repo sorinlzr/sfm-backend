@@ -8,8 +8,8 @@ export interface IActivity  {
     opponent?: Types.ObjectId;
     date: Date;
     location: string;
-    listOfGuests: [{
+    listOfGuests: {
         _id: Types.ObjectId,
         attendance: boolean
-    }]
+    }[];
 }

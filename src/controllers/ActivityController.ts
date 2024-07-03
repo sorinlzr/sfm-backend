@@ -8,6 +8,7 @@ import { capitalizeFirstLetter } from "../util/Utils";
 import { IActivity } from "../interfaces/IActivity";
 import User from "../models/User";
 import ActivityTypeModel, { ActivityTypeEnum } from "../models/ActivityType";
+import mongoose from 'mongoose';
 
 interface ActivityController {
     createActivity?: any;
@@ -36,10 +37,10 @@ const createActivity = asyncHandler(async (req, res) => {
         let opponent;
         if (req.body.opponent) {
             opponent = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.opponent)) });
-
         } else {
-            opponent = team
+            opponent = team;
         }
+
         if (!team || !opponent) {
             res.status(404).json({ error: "Could not find the team with the specified name. Please check your input" });
             return;
@@ -56,21 +57,30 @@ const createActivity = asyncHandler(async (req, res) => {
                 activityType = await ActivityTypeModel.findOne({ "name": ActivityTypeEnum.OtherActivity.valueOf() });
             }
 
-            console.log("========================req.body.date")
-            // console.log(req.body.date)
+            const listOfGuests = [];
 
-            // const dateFormat = 'YYYY-MM-DDTHH:mm:ss+Z';
-            // if (!moment(req.body.date, dateFormat, true).isValid()) {
-            //     res.status(400).json({ error: "Invalid date format. Please use ISO 8601 format (e.g., 2023-06-18T15:30:00+Z)." });
-            //     return;
-            // }
-
-            // const listOfGuests = req.body.listOfGuests.map((guest: any) => {
-            //     if (typeof guest === 'string') {
-            //         return { _id: guest, attendance: true }; // default attendance is true when creating the activity
-            //     }
-            //     return guest;
-            // });
+            if (team.id !== opponent.id) {
+                // Add members from both teams
+                const allMembers = [...team.listOfMembers, ...opponent.listOfMembers];
+                const uniqueMembers = Array.from(new Set(allMembers.map(member => member.toString())));
+                
+                for (const memberId of uniqueMembers) {
+                    if (memberId === team.manager.toString()) {
+                        listOfGuests.push({ _id: new mongoose.Types.ObjectId(memberId), attendance: true });
+                    } else {
+                        listOfGuests.push({ _id: new mongoose.Types.ObjectId(memberId), attendance: false });
+                    }
+                }
+            } else {
+                // Add members from the same team
+                for (const memberId of team.listOfMembers) {
+                    if (memberId.toString() === team.manager.toString()) {
+                        listOfGuests.push({ _id: memberId, attendance: true });
+                    } else {
+                        listOfGuests.push({ _id: memberId, attendance: false });
+                    }
+                }
+            }
 
             const newActivity: IActivity = {
                 subject: req.body.subject,
@@ -79,31 +89,32 @@ const createActivity = asyncHandler(async (req, res) => {
                 opponent: opponent.id,
                 date: new Date(),
                 location: req.body.location,
-                listOfGuests: [{ _id: jwtUserId, attendance: true }] 
-            }
+                listOfGuests
+            };
 
             const newDoc = await Activity.create(newActivity);
 
             team.activities.push(newDoc.id);
             await team.save();
-            opponent.activities.push(newDoc.id);
-            await opponent.save();
+            if (team.id !== opponent.id) {
+                opponent.activities.push(newDoc.id);
+                await opponent.save();
+            }
 
             const activities = await Activity.find({ _id: { $in: team.activities } })
-                            .populate('hostingTeam', 'name typeOfSport manager')
-                            .populate('type', 'name')
-                            .populate('opponent', 'name typeOfSport manager')
-                            .populate('listOfGuests._id', 'firstname lastname username avatar');
-
+                .populate('hostingTeam', 'name typeOfSport manager')
+                .populate('type', 'name')
+                .populate('opponent', 'name typeOfSport manager')
+                .populate('listOfGuests._id', 'firstname lastname username avatar');
 
             res.status(200).json({ data: activities });
-
-        }   
+        }
     } catch (error: any) {
-        console.error(`An error has occured trying to create an activity for the team\n`, error);
-        res.status(404).json({ error: "An error has occured trying to create an activity for the team" });
+        console.error(`An error has occurred trying to create an activity for the team\n`, error);
+        res.status(404).json({ error: "An error has occurred trying to create an activity for the team" });
     }
 });
+
 
 const getActivities = asyncHandler(async (req, res) => {
     try {
@@ -121,7 +132,11 @@ const getActivities = asyncHandler(async (req, res) => {
             return;
         }
 
-        const activities = await Activity.find({ _id: { $in: team.activities } });
+        const activities = await Activity.find({ _id: { $in: team.activities } })
+        .populate('hostingTeam', 'name typeOfSport manager')
+        .populate('type', 'name')
+        .populate('opponent', 'name typeOfSport manager')
+        .populate('listOfGuests._id', 'firstname lastname username avatar');
         res.status(200).json({ data: activities });
     } catch (error: any) {
         console.error("An error has occurred trying to get the team activities\n", error);
@@ -131,18 +146,12 @@ const getActivities = asyncHandler(async (req, res) => {
 
 const getUserActivities = asyncHandler(async (req, res) => {
     try {
-        console.log("Getting user activities")
+        console.log("Getting user activities");
         const jwtUserId = authController.getUserIdFromJwtToken(req);
         if (!jwtUserId) {
             res.status(401).json({ error: "You must be logged in to perform this action" });
             return;
         }
-
-        // const username = req.body.username;
-        // if (!username) {
-        //     res.status(400).json({ error: "User ID is required" });
-        //     return;
-        // }
 
         const user = await User.findById(jwtUserId);
         if (!user) {
@@ -150,7 +159,18 @@ const getUserActivities = asyncHandler(async (req, res) => {
             return;
         }
 
-        const activities = await Activity.find({ "listOfGuests._id": jwtUserId })
+        const teams = await Team.find({ listOfMembers: jwtUserId });
+
+        if (teams.length === 0) {
+            res.status(200).json({ data: [] });
+            return;
+        }
+
+        const activityIds = teams.reduce<mongoose.Types.ObjectId[]>((acc, team) => {
+            return acc.concat(team.activities);
+        }, []);
+
+        const activities = await Activity.find({ _id: { $in: activityIds } })
             .populate('hostingTeam', 'name typeOfSport manager')
             .populate('type', 'name')
             .populate('opponent', 'name typeOfSport manager')
