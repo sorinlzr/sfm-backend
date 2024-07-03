@@ -38,11 +38,6 @@ const activityRouter = express.Router();
  *               location:
  *                 type: string
  *                 example: "Stadium"
- *               listOfGuests:
- *                 type: array
- *                 items:
- *                   type: string
- *                   example: "66701737eca837c89a95757d"
  *     responses:
  *       201:
  *         description: Activity created successfully

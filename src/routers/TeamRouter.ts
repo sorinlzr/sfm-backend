@@ -45,6 +45,24 @@ teamRouter.get('/all', teamController.getAllTeams);
 
 /**
  * @swagger
+ * /api/team/manager:
+ *   get:
+ *     summary: Get team by manager
+ *     tags: [Teams]
+ *     responses:
+ *       200:
+ *         description: Team retrieved successfully
+ *       404:
+ *         description: No team found for the current manager
+ *       500:
+ *         description: Server error
+ */
+teamRouter.get('/manager', authController.validateToken, teamController.getTeamByManager);
+
+
+
+/**
+ * @swagger
  * /api/team:
  *   post:
  *     summary: Create a new team
@@ -74,9 +92,9 @@ teamRouter.post('/', authController.validateToken, teamController.createTeam);
 
 /**
  * @swagger
- * /api/team/add:
- *   put:
- *     summary: Add user to team
+ * /api/team/user/add:
+ *   post:
+ *     summary: Add user to team based on team name and user ID
  *     tags: [Teams]
  *     requestBody:
  *       required: true
@@ -85,15 +103,17 @@ teamRouter.post('/', authController.validateToken, teamController.createTeam);
  *           schema:
  *             type: object
  *             properties:
- *               team:
+ *               teamName:
  *                 type: string
- *               username:
+ *                 description: The name of the team to add the user to
+ *               userId:
  *                 type: string
+ *                 description: The ID of the user to be added to the team
  *     responses:
  *       200:
  *         description: User added to team successfully
  *       400:
- *         description: Team name and username are required
+ *         description: Team name and user ID are required
  *       401:
  *         description: You are not the manager of this team
  *       404:
@@ -101,7 +121,78 @@ teamRouter.post('/', authController.validateToken, teamController.createTeam);
  *       500:
  *         description: Server error
  */
-teamRouter.put('/add', authController.validateToken, teamController.addUserToTeam);
+teamRouter.post('/user/add', authController.validateToken, teamController.addUserToTeam);
+
+/**
+ * @swagger
+ * /api/team/user/join:
+ *   post:
+ *     summary: Add a user to the pendingMembers list of a team using an invite code
+ *     tags: [Teams]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user to add to the team
+ *               inviteCode:
+ *                 type: string
+ *                 description: The invite code of the team
+ *             required:
+ *               - userId
+ *               - inviteCode
+ *     responses:
+ *       200:
+ *         description: User added to pendingMembers list successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Team'
+ *       404:
+ *         description: User or team not found
+ *       500:
+ *         description: Server error
+ */
+
+teamRouter.post('/user/join', authController.validateToken,  teamController.addUserToPendingMembers);
+
+/**
+ * @swagger
+ * /api/team/user/remove:
+ *   post:
+ *     summary: Remove a user from a team
+ *     tags: [Teams]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user to remove
+ *               teamName:
+ *                 type: string
+ *                 description: The name of the team from which the user will be removed
+ *     responses:
+ *       200:
+ *         description: User removed from the team successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Team'
+ *       404:
+ *         description: User or team not found
+ *       500:
+ *         description: Server error
+ */
+
+teamRouter.post('/user/remove', authController.validateToken, teamController.removeUserFromTeam);
 
 /**
  * @swagger

@@ -21,7 +21,7 @@ export const connectToDatabase = async (): Promise<void> => {
 
 export const initializeEnums = async(): Promise<void> => {
     const roles = Object.values(RoleEnum).filter(value => typeof value === 'string');
-    console.debug("Roles: ", roles);
+    // console.debug("Roles: ", roles);
     for (const role of roles) {
       const existingRole = await RoleModel.findOne({ name: role });
       if (!existingRole) {
@@ -33,7 +33,7 @@ export const initializeEnums = async(): Promise<void> => {
     }
 
     const activityTypes = Object.values(ActivityTypeEnum).filter(value => typeof value === 'string');
-    console.debug("Activity types: ", activityTypes);
+    // console.debug("Activity types: ", activityTypes);
     for (const type of activityTypes) {
       const existingType = await ActivityTypeModel.findOne({ name: type });
       if (!existingType) {

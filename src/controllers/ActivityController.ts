@@ -22,6 +22,8 @@ const activityController: ActivityController = {};
 
 const createActivity = asyncHandler(async (req, res) => {
     try {
+        console.log(req.body);
+
         const jwtUserId = authController.getUserIdFromJwtToken(req);
         if (!jwtUserId) {
             res.status(401).json({ error: "You must be logged in to perform this action" });
@@ -30,7 +32,14 @@ const createActivity = asyncHandler(async (req, res) => {
         console.log(`[ActivityController] JwtUserId: ${jwtUserId}`);
 
         const team = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.team)) });
-        const opponent = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.opponent)) });
+
+        let opponent;
+        if (req.body.opponent) {
+            opponent = await Team.findOne({ "name": capitalizeFirstLetter(String(req.body.opponent)) });
+
+        } else {
+            opponent = team
+        }
         if (!team || !opponent) {
             res.status(404).json({ error: "Could not find the team with the specified name. Please check your input" });
             return;
@@ -47,33 +56,38 @@ const createActivity = asyncHandler(async (req, res) => {
                 activityType = await ActivityTypeModel.findOne({ "name": ActivityTypeEnum.OtherActivity.valueOf() });
             }
 
-            const dateFormat = 'YYYY-MM-DDTHH:mm:ssZ';
-            if (!moment(req.body.date, dateFormat, true).isValid()) {
-                res.status(400).json({ error: "Invalid date format. Please use ISO 8601 format (e.g., 2023-06-18T15:30:00Z)." });
-                return;
-            }
+            console.log("========================req.body.date")
+            // console.log(req.body.date)
 
-            const listOfGuests = req.body.listOfGuests.map((guest: any) => {
-                if (typeof guest === 'string') {
-                    return { _id: guest, attendance: true }; // default attendance is true when creating the activity
-                }
-                return guest;
-            });
+            // const dateFormat = 'YYYY-MM-DDTHH:mm:ss+Z';
+            // if (!moment(req.body.date, dateFormat, true).isValid()) {
+            //     res.status(400).json({ error: "Invalid date format. Please use ISO 8601 format (e.g., 2023-06-18T15:30:00+Z)." });
+            //     return;
+            // }
+
+            // const listOfGuests = req.body.listOfGuests.map((guest: any) => {
+            //     if (typeof guest === 'string') {
+            //         return { _id: guest, attendance: true }; // default attendance is true when creating the activity
+            //     }
+            //     return guest;
+            // });
 
             const newActivity: IActivity = {
                 subject: req.body.subject,
                 type: activityType?.id,
                 hostingTeam: team.id,
                 opponent: opponent.id,
-                date: new Date(req.body.date),
+                date: new Date(),
                 location: req.body.location,
-                listOfGuests: listOfGuests
+                listOfGuests: [{ _id: jwtUserId, attendance: true }] 
             }
 
             const newDoc = await Activity.create(newActivity);
 
             team.activities.push(newDoc.id);
             await team.save();
+            opponent.activities.push(newDoc.id);
+            await opponent.save();
 
             const activities = await Activity.find({ _id: { $in: team.activities } })
                             .populate('hostingTeam', 'name typeOfSport manager')
