@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import Team from "../models/Team";
 import authController from "./AuthController";
+import express from 'express';
 
 interface UserController {
     createUser?: any;
@@ -88,7 +89,7 @@ const getUsers = asyncHandler(async (req, res, next) => {
 });
 
 const getOneUser = asyncHandler(async (req, res, next) => {
-    const document = await User.findOne({username: req.params.username});
+    const document = await User.findById(req.params.userId); 
     if (!document) {
         res.status(404).json({ error: "User not found" });
     } else {
@@ -107,12 +108,14 @@ const getOneUser = asyncHandler(async (req, res, next) => {
 
 const updateUser = asyncHandler(async (req, res, next) => {
     try {
+        const userId = req.params.userId;
+
         const jwtUserId = authController.getUserIdFromJwtToken(req);
         if (!jwtUserId) {
             res.status(401).json({ error: "You must be logged in to perform this action" });
             return;
         }
-        const user = await User.findOne({ username: req.params.username });
+        const user = await User.findById(userId);
         if (!user) {
             res.status(404);
             throw new Error("User not found");
@@ -147,6 +150,11 @@ const updateUser = asyncHandler(async (req, res, next) => {
         if (req.body.password) {
             user.password = req.body.password;
         }
+        console.log("user.email")
+        console.log(user.email)
+        console.log(req.body.email)
+        console.log("req.body.email")
+        
         if (req.body.email && req.body.email !== user.email) {
             const existingUser = await User.findOne({ email: req.body.email });
             if (existingUser) {
@@ -164,11 +172,18 @@ const updateUser = asyncHandler(async (req, res, next) => {
         if (req.body.avatar) {
             user.avatar = req.body.avatar;
         }
-        await user.save();
-        res.status(200).json({
-            message: "User updated successfully",
-            data: user,
-        });
+        const document = await user.save();
+        
+        const payload = {
+            id: document._id,
+            username: document.username,
+            firstname: document.firstname,
+            lastname: document.lastname,
+            avatar: document.avatar,
+            email: document.email
+        };
+
+        res.status(200).json({data: payload});
     } catch (error: any) {
         console.error(`Could not update the user with the specified data ${req.body}\n`, error);
         res.status(404).json({ error: "Could not update the user with the specified data. Please check your input" });

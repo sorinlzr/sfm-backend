@@ -332,12 +332,16 @@ teamController.getAllTeams = asyncHandler(async (req, res) => {
 });
 
 const updateTeam = asyncHandler(async (req, res) => {
+
+    const teamId = req.params.teamId;
+    const { name, typeOfSport } = req.body;
+    console.log("Request body: ", req.body)
+    console.log("teamId: ", teamId)
+    
     try {
         const jwtUserId = authController.getUserIdFromJwtToken(req);
 
-        const team = await Team.findOne({
-            name: capitalizeFirstLetter(String(req.body.team)),
-        });
+        const team = await Team.findById(teamId);
         if (!team) {
             res.status(404).json({
                 error: "Could not find the team with the specified name",
@@ -349,28 +353,61 @@ const updateTeam = asyncHandler(async (req, res) => {
             console.log("Team manager id: ", manager.id);
 
             if (manager._id.toString() === jwtUserId) {
-                if (req.body.name) {
-                    team.name = capitalizeFirstLetter(String(req.body.name));
+                if (name && name !== team.name) {
+                    team.name = capitalizeFirstLetter(String(name));
                 }
-                if (req.body.type) {
+                if (typeOfSport && typeOfSport !== team.typeOfSport) {
                     team.typeOfSport = capitalizeFirstLetter(
-                        String(req.body.type)
+                        String(typeOfSport)
                     );
                 }
-                if (req.body.manager) {
-                    team.manager = req.body.manager;
-                }
-                if (req.body.members) {
-                    team.listOfMembers = req.body.members;
-                }
-                if (req.body.activities) {
-                    team.activities = req.body.activities;
-                }
-                if (req.body.inviteCode) {
-                    team.inviteCode = req.body.inviteCode;
-                }
                 await team.save();
-                res.status(200).json({ message: "Team updated successfully" });
+
+                const updatedTeam = await Team.findById(team._id)
+                    .populate("manager listOfMembers pendingMembers")
+                    .populate({
+                        path: "activities",
+                        populate: {
+                            path: "hostingTeam opponent",
+                            populate: {
+                                path: "name",
+                            },
+                            model: "Team",
+                        },
+                        model: "Activity",
+                    })
+                    .populate({
+                        path: "activities",
+                        populate: {
+                            path: "type",
+                            populate: {
+                                path: "name",
+                            },
+                            model: "ActivityType",
+                        },
+                        model: "Activity",
+                    })
+                    .populate({
+                        path: "activities",
+                        populate: {
+                            path: "listOfGuests",
+                            model: "User",
+                        },
+                        model: "Activity",
+                    });
+
+                const payload = {
+                    id: updatedTeam!._id,
+                    name: updatedTeam!.name,
+                    typeOfSport: updatedTeam!.typeOfSport,
+                    manager: updatedTeam!.manager,
+                    members: updatedTeam!.listOfMembers,
+                    pendingMembers: updatedTeam!.pendingMembers,
+                    activities: updatedTeam!.activities,
+                    inviteCode: updatedTeam!.inviteCode,
+                };
+
+                res.status(200).json({ data: payload });
             } else {
                 res.status(403).json({
                     error: "Current user is not the manager of the team.",

@@ -84,17 +84,17 @@ userRouter.get('/', userController.getUsers);
 
 /**
  * @swagger
- * /api/user/{username}:
+ * /api/user/{userId}:
  *   get:
- *     summary: Get a user by username
+ *     summary: Get a user by id
  *     tags: [Users]
  *     parameters:
  *       - in: path
- *         name: username
+ *         name: userId
  *         schema:
  *           type: string
  *         required: true
- *         description: The username of the user
+ *         description: The id of the user
  *     responses:
  *       200:
  *         description: User details retrieved successfully
@@ -127,21 +127,21 @@ userRouter.get('/', userController.getUsers);
  *       404:
  *         description: User not found
  */
-userRouter.get('/:username', userController.getOneUser);
+userRouter.get('/:userId', userController.getOneUser);
 
 /**
  * @swagger
- * /api/user/{username}:
+ * /api/user/{userId}:
  *   put:
  *     summary: Update a user's details
  *     tags: [Users]
  *     parameters:
  *       - in: path
- *         name: username
+ *         name: userId
  *         schema:
  *           type: string
  *         required: true
- *         description: The username of the user
+ *         description: The userId of the user
  *     requestBody:
  *       required: true
  *       content:
@@ -173,6 +173,6 @@ userRouter.get('/:username', userController.getOneUser);
  *       404:
  *         description: User not found
  */
-userRouter.put('/:username', authController.validateToken, userController.updateUser);
+userRouter.put('/:userId', authController.validateToken, userController.updateUser);
 
 export default userRouter;

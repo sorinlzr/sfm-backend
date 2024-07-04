@@ -220,10 +220,17 @@ teamRouter.post('/user/remove', authController.validateToken, teamController.rem
 
 /**
  * @swagger
- * /api/team/update:
+ * /api/team/{teamId}:
  *   put:
  *     summary: Update team details
  *     tags: [Teams]
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The id of the team
  *     requestBody:
  *       required: true
  *       content:
@@ -231,23 +238,9 @@ teamRouter.post('/user/remove', authController.validateToken, teamController.rem
  *           schema:
  *             type: object
  *             properties:
- *               team:
- *                 type: string
  *               name:
  *                 type: string
  *               typeOfSport:
- *                 type: string
- *               manager:
- *                 type: string
- *               members:
- *                 type: array
- *                 items:
- *                   type: string
- *               activities:
- *                 type: array
- *                 items:
- *                   type: string
- *               inviteCode:
  *                 type: string
  *     responses:
  *       200:
@@ -261,7 +254,7 @@ teamRouter.post('/user/remove', authController.validateToken, teamController.rem
  *       500:
  *         description: Server error
  */
-teamRouter.put('/update', authController.validateToken, teamController.updateTeam);
+teamRouter.put('/:teamId', authController.validateToken, teamController.updateTeam);
 
 /**
  * @swagger

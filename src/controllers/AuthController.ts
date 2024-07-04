@@ -51,6 +51,7 @@ const login = asyncHandler(async (req, res, next): Promise<void> => {
             const auth = await bcrypt.compare(password, user.password)
             if (!auth) {
                 res.status(401).json({ error: 'Incorrect password' })
+                return;
             }
 
             console.log("Matching password");
