@@ -602,6 +602,13 @@ const removeUserFromTeam = asyncHandler(async (req, res) => {
             });
             return;
         }
+        const jwtUserId = authController.getUserIdFromJwtToken(req);
+        if (team.manager._id.toString() !== jwtUserId) {
+            res.status(401).json({
+                error: "You are not the manager of this team",
+            });
+            return;
+        }
         if (
             team.pendingMembers.some(
                 (member) => member._id.toString() === userId

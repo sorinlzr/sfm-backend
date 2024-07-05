@@ -108,7 +108,7 @@ const logout = asyncHandler(async (req, res, next) => {
 const register = asyncHandler(async (req: Request, res: Response) => {
     try { 
         await userController.createUser(req, res);
-        res.status(201).json({ message: 'User registered successfully. You can now log in.' });
+        // res.status(201).json({ message: 'User registered successfully. You can now log in.' });
     } catch (error) {
         console.error('Error during user registration:', error);
         res.status(400).json({ error: 'An error occurred during registration. Please try again later.' });

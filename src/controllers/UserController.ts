@@ -46,7 +46,8 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
         const newDoc = await User.create(newUser);
 
         if (inviteCode !== "") {
-            const team = await Team.findOne({ "inviteCode" : inviteCode });
+            const code = inviteCode.toUpperCase();
+            const team = await Team.findOne({ "inviteCode" : code });
             if (team) {
                 team?.pendingMembers.push(newDoc.id);
                 await team.save();
