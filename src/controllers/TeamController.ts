@@ -497,10 +497,8 @@ const addUserToPendingMembers = asyncHandler(async (req, res) => {
 
 const addUserToTeam = asyncHandler(async (req, res) => {
     try {
-        // Step 1: Receive teamName and userId in the request body
         const { teamName, userId } = req.body;
 
-        // Step 2: Find the team and user based on the received information
         const team = await Team.findOne({
             name: capitalizeFirstLetter(teamName),
         });
@@ -513,7 +511,6 @@ const addUserToTeam = asyncHandler(async (req, res) => {
             return;
         }
 
-        // Check if the current user is the manager of the team
         const jwtUserId = authController.getUserIdFromJwtToken(req);
         if (team.manager._id.toString() !== jwtUserId) {
             res.status(401).json({
@@ -522,20 +519,17 @@ const addUserToTeam = asyncHandler(async (req, res) => {
             return;
         }
 
-        // Step 3 & 4: Check if the user is in the pendingMembers list, then add to listOfMembers and remove from pendingMembers
+        // check if the user is in the pendingMembers list then add to listOfMembers and remove from pendingMembers
         if (
             team.pendingMembers.some(
                 (member) => member._id.toString() === userId
             )
         ) {
-            // Add to listOfMembers
             team.listOfMembers.push(user.id);
-            // Remove from pendingMembers
             team.pendingMembers = team.pendingMembers.filter(
                 (member) => member._id.toString() !== userId
             );
 
-            // Step 5: Save the updated team document and respond
             await team.save();
             const updatedTeam = await Team.findOne({
                 name: capitalizeFirstLetter(teamName),

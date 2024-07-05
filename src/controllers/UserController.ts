@@ -48,7 +48,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
         if (inviteCode !== "") {
             const team = await Team.findOne({ "inviteCode" : inviteCode });
             if (team) {
-                team?.listOfMembers.push(newDoc.id);
+                team?.pendingMembers.push(newDoc.id);
                 await team.save();
             } else {
                 console.log("Could not add user to team, the team with the given invite code does not exist.");
