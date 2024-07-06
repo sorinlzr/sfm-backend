@@ -20,6 +20,11 @@ npm install
 ### Docker
 The project uses docker containers, so you should have the [docker](https://www.docker.com/) engine installed on your machine.<br>
 
+There are three docker compose files available:
+* docker-compose.yml - contains only the backend service
+* docker-compose-db.yml - contains only the mongo and mongo-express services
+* docker-compose-all.yml - contains all three services
+
 Before starting the containers you need to add some necessary environment variables mentioned below.
 
 ### Environment variables
@@ -37,20 +42,30 @@ MONGO_PORT                  - the port where the mongoDB can service can be reac
 MONGO_DB_NAME               - the database name
 MONGO_DB_COLLECTION         - the initial collection inside the database specified above
 
+MONGOEXPRESS_LOGIN          - the user for the UI interface login
+MONGOEXPRESS_PASSWORD       - the password for the UI interface login
+MONGOEXPRESS_PORT           - the port where to access the web UI interface
+
 ```
-### Spinning up the database locally using Docker
-Open a terminal in the repository root directory and run 
+### Spinning up the app locally using Docker
+Open a terminal in the repository root directory and run:
 ```
 docker compose up
 ``` 
-to spin up the container described in the `docker-compose.yml` file. 
-
-If it is the first time you run the command, docker will build the image based on the Dockerfile. 
+to use the default docker compose file. If it is the first time you run the command, docker will build the image based on the Dockerfile. 
 
 The command will always start the same container. but if you want to rebuild the it, then run the command:
 ```
 docker compose up --build
 ```
+
+### Spinning up the database locally using docker with Mongo
+
+Open a terminal in the repository root directory and run 
+```
+docker compose -f <filename> up
+``` 
+to use any of the other docker compose files containing the mongoDB service. 
 
 ### Swagger API
 
